@@ -21,7 +21,7 @@ dependencies = [
 
     # --- Auth ---
     "python-jose[cryptography]>=3.3.0",  # JWT encoding/decoding
-    "passlib[bcrypt]>=1.7.4",            # password hashing
+    "bcrypt>=4.0.0",                     # password hashing (used directly, no passlib wrapper)
 
     # --- Cache & sessions ---
     "redis>=5.0.0",                # async Redis client

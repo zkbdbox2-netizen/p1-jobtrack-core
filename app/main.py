@@ -5,6 +5,7 @@ import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth.routes import router as auth_router
 from app.config import settings
 
 logger = structlog.get_logger()
@@ -69,6 +70,9 @@ def create_app() -> FastAPI:
 
         response.headers["X-Correlation-ID"] = correlation_id
         return response
+
+    # --- Routers ---
+    app.include_router(auth_router)
 
     # --- Routes ---
     @app.get("/health", tags=["ops"], summary="Health check")
