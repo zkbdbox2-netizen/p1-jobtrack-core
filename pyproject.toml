@@ -1,0 +1,51 @@
+[project]
+name = "p1-jobtrack-core"
+version = "0.1.0"
+description = "AI-Powered Job Application Tracker — Core API"
+requires-python = ">=3.12"
+dependencies = [
+    # --- Web framework ---
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",   # [standard] includes websocket + http/2 support
+    "python-multipart>=0.0.9",     # required for form data (login endpoint)
+
+    # --- Database ---
+    "sqlalchemy[asyncio]>=2.0.0",  # async ORM; [asyncio] includes greenlet
+    "asyncpg>=0.29.0",             # async PostgreSQL driver (faster than psycopg2 for async)
+    "alembic>=1.13.0",             # database migrations
+
+    # --- Validation & settings ---
+    "pydantic>=2.7.0",
+    "pydantic[email]>=2.7.0",      # email validation
+    "pydantic-settings>=2.2.0",    # reads settings from .env files
+
+    # --- Auth ---
+    "python-jose[cryptography]>=3.3.0",  # JWT encoding/decoding
+    "passlib[bcrypt]>=1.7.4",            # password hashing
+
+    # --- Cache & sessions ---
+    "redis>=5.0.0",                # async Redis client
+
+    # --- Observability ---
+    "prometheus-client>=0.20.0",   # /metrics endpoint
+    "structlog>=24.0.0",           # structured JSON logging
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",      # async test support
+    "httpx>=0.27.0",               # async HTTP client used in tests
+    "pytest-cov>=5.0.0",           # coverage reports
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"              # all async test functions run automatically
+testpaths = ["tests"]

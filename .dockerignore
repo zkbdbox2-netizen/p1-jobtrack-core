@@ -1,0 +1,22 @@
+# Never bake secrets into the image.
+# Docker Compose reads .env from the host and injects variables into the
+# container's environment — the app reads them as env vars, not as a file.
+.env
+.env.*
+!.env.example        # keep the example so it's visible in the image build context
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+*.egg-info/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
