@@ -4,10 +4,17 @@ import uuid
 import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.auth.routes import router as auth_router
 from app.routers.jobs import router as jobs_router
 from app.config import settings
+from app.metrics import REQUEST_COUNT, REQUEST_LATENCY, REQUESTS_INPROGRESS
+
+# Paths excluded from Prometheus instrumentation.
+# Monitoring and health-check endpoints would pollute latency histograms
+# and request-rate graphs if included — they're not real user traffic.
+_EXCLUDED_PATHS = {"/metrics", "/health", "/docs", "/redoc", "/openapi.json"}
 
 logger = structlog.get_logger()
 
@@ -39,6 +46,39 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # --- Prometheus metrics middleware ---
+    # Wraps every request to record three signals:
+    #   - REQUESTS_INPROGRESS: incremented on entry, decremented on exit (gauge)
+    #   - REQUEST_LATENCY: wall-clock time from first byte received to response sent
+    #   - REQUEST_COUNT: one increment per completed request, labelled with status code
+    #
+    # Runs BEFORE the correlation-ID middleware (middleware is LIFO in Starlette)
+    # so latency includes correlation-ID processing — a more accurate end-to-end number.
+    @app.middleware("http")
+    async def prometheus_middleware(request: Request, call_next) -> Response:
+        path = request.url.path
+
+        # Skip instrumentation for ops endpoints — they'd skew metrics.
+        if path in _EXCLUDED_PATHS:
+            return await call_next(request)
+
+        method = request.method
+        REQUESTS_INPROGRESS.labels(method=method, path=path).inc()
+        start = time.perf_counter()
+        try:
+            response: Response = await call_next(request)
+        finally:
+            duration = time.perf_counter() - start
+            REQUESTS_INPROGRESS.labels(method=method, path=path).dec()
+            REQUEST_LATENCY.labels(method=method, path=path).observe(duration)
+            REQUEST_COUNT.labels(
+                method=method,
+                path=path,
+                status_code=response.status_code,
+            ).inc()
+
+        return response
 
     # --- Correlation ID middleware ---
     # Every HTTP request gets a unique ID (UUID). This ID is:
@@ -77,6 +117,25 @@ def create_app() -> FastAPI:
     app.include_router(jobs_router)
 
     # --- Routes ---
+    @app.get("/metrics", tags=["ops"], summary="Prometheus metrics", include_in_schema=False)
+    async def metrics() -> Response:
+        """
+        Exposes all registered Prometheus metrics in the text exposition format.
+
+        Scraped by a Prometheus server (or Grafana Agent) every 15–60 seconds.
+        include_in_schema=False hides this from Swagger UI — it's an ops endpoint,
+        not part of the public API contract.
+
+        Example output:
+            # HELP http_requests_total Total HTTP requests received...
+            # TYPE http_requests_total counter
+            http_requests_total{method="GET",path="/jobs",status_code="200"} 42.0
+        """
+        return Response(
+            content=generate_latest(),
+            media_type=CONTENT_TYPE_LATEST,
+        )
+
     @app.get("/health", tags=["ops"], summary="Health check")
     async def health() -> dict:
         """
