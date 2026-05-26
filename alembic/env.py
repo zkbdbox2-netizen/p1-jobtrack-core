@@ -22,8 +22,8 @@ from app.models.base import Base
 # If a model isn't imported, Alembic won't know it exists and won't generate
 # a migration for it. This is the most common "why didn't Alembic detect my model" gotcha.
 from app.models.user import User  # noqa: F401
+from app.models.job import Job    # noqa: F401
 # Add future models here as you create them:
-# from app.models.job import Job  # noqa: F401
 # from app.models.company import Company  # noqa: F401
 
 # Alembic Config object — provides access to alembic.ini values

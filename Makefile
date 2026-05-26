@@ -1,4 +1,4 @@
-.PHONY: up down logs shell migrate migrate-create test lint
+.PHONY: up down restart logs shell migrate migrate-create test lint
 
 # Auto-detect: use "docker compose" (V2 plugin) if available, else fall back to
 # "docker-compose" (V1 standalone). This makes the Makefile work on both.
@@ -17,6 +17,9 @@ down:
 
 down-volumes:
 	$(COMPOSE) down -v   # WARNING: destroys the postgres volume (all data)
+
+restart:
+	$(COMPOSE) down && $(COMPOSE) up --build -d
 
 logs:
 	$(COMPOSE) logs -f app
