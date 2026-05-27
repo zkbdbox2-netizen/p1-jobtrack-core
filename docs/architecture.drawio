@@ -1,0 +1,304 @@
+<mxfile host="app.diagrams.net" version="21.0.0">
+  <diagram name="P1-JobTrack-Architecture" id="jobtrack-arch">
+    <mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1"
+      tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1"
+      pageWidth="1100" pageHeight="560" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- TITLE                                           -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <mxCell id="title"
+          value="P1 JobTrack Core — System Architecture"
+          style="text;html=1;strokeColor=none;fillColor=none;
+                 align=center;verticalAlign=middle;
+                 fontSize=17;fontStyle=1;fontFamily=Helvetica;fontColor=#1A1A2E;"
+          vertex="1" parent="1">
+          <mxGeometry x="80" y="12" width="940" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- CLIENT                                          -->
+        <!-- Positioned at row-1 height, aligned with Auth  -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <mxCell id="client"
+          value="&lt;b&gt;Client&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;Browser / curl&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#06D6A0;strokeColor=#05A87D;strokeWidth=2;
+                 fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="20" y="132" width="120" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- FASTAPI CONTAINER                               -->
+        <!-- Left col: Middleware  |  Right col: Routes      -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <mxCell id="fastapi-group"
+          value="&lt;b&gt;FastAPI&lt;/b&gt;  ·  uvicorn :8000"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#F0F4FF;strokeColor=#4361EE;strokeWidth=2;
+                 dashed=1;dashPattern=8 4;
+                 verticalAlign=top;spacingTop=6;spacingLeft=10;align=left;
+                 fontSize=12;fontStyle=1;fontColor=#4361EE;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="170" y="90" width="640" height="360" as="geometry" />
+        </mxCell>
+
+        <!-- ─── Left column: Middleware ─────────────────── -->
+
+        <!-- Row 1: Prometheus Middleware  (aligned with Auth + Redis) -->
+        <mxCell id="pm"
+          value="&lt;b&gt;Prometheus Middleware&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;latency · request count · in-progress gauge&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#FFD166;strokeColor=#E6B800;strokeWidth=2;
+                 fontColor=#1A1200;fontSize=12;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="190" y="132" width="190" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Row 2: Correlation ID Middleware  (aligned with Jobs + PostgreSQL) -->
+        <mxCell id="cid"
+          value="&lt;b&gt;Correlation ID Middleware&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;request ID in logs · X-Correlation-ID header&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#FFD166;strokeColor=#E6B800;strokeWidth=2;
+                 fontColor=#1A1200;fontSize=12;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="190" y="242" width="190" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- ─── Right column: Routes ─────────────────────── -->
+
+        <!-- Row 1: Auth Service  (aligned with PM + Redis) -->
+        <mxCell id="auth"
+          value="&lt;b&gt;Auth Service&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;POST /auth/register&lt;br/&gt;POST /auth/login · /refresh · /logout&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#4361EE;strokeColor=#2A41CE;strokeWidth=2;
+                 fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="415" y="132" width="370" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Row 2: Jobs Service  (aligned with CID + PostgreSQL) -->
+        <mxCell id="jobs"
+          value="&lt;b&gt;Jobs Service&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;GET · POST /jobs&lt;br/&gt;GET · PATCH · DELETE /jobs/:id&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#7209B7;strokeColor=#520885;strokeWidth=2;
+                 fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="415" y="242" width="370" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Row 3: Ops  (aligned with Prometheus ellipse) -->
+        <mxCell id="ops"
+          value="&lt;b&gt;Ops&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;GET /health · GET /metrics&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#06D6A0;strokeColor=#05A87D;strokeWidth=2;
+                 fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="415" y="345" width="370" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- DATA STORES CONTAINER                           -->
+        <!-- Rows aligned with FastAPI route rows            -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <mxCell id="datastores-group"
+          value="&lt;b&gt;Data Stores&lt;/b&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;
+                 fillColor=#FFF8F2;strokeColor=#FF8C42;strokeWidth=2;
+                 dashed=1;dashPattern=8 4;
+                 verticalAlign=top;spacingTop=6;spacingLeft=10;align=left;
+                 fontSize=12;fontStyle=1;fontColor=#FF8C42;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="858" y="90" width="195" height="360" as="geometry" />
+        </mxCell>
+
+        <!-- Row 1: Redis  (aligned with Auth + PM) -->
+        <mxCell id="redis"
+          value="&lt;b&gt;Redis 7&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;refresh token JTI set&lt;/font&gt;"
+          style="shape=cylinder3;whiteSpace=wrap;html=1;
+                 fillColor=#EF5350;strokeColor=#B71C1C;strokeWidth=2;
+                 fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;
+                 boundedLbl=1;backgroundOutline=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="873" y="132" width="162" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Row 2: PostgreSQL  (aligned with Jobs + CID) -->
+        <mxCell id="postgres"
+          value="&lt;b&gt;PostgreSQL 16&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;users · jobs&lt;/font&gt;"
+          style="shape=cylinder3;whiteSpace=wrap;html=1;
+                 fillColor=#FF8C42;strokeColor=#D4621A;strokeWidth=2;
+                 fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;
+                 boundedLbl=1;backgroundOutline=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="873" y="242" width="162" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Row 3: Prometheus  (aligned with Ops) -->
+        <mxCell id="prometheus"
+          value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:10px'&gt;metrics scraper&lt;/font&gt;"
+          style="ellipse;whiteSpace=wrap;html=1;
+                 fillColor=#AB47BC;strokeColor=#7B1FA2;strokeWidth=2;
+                 fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;"
+          vertex="1" parent="1">
+          <mxGeometry x="873" y="362" width="162" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- EDGES                                           -->
+        <!--                                                 -->
+        <!-- All primary service→datastore connections are  -->
+        <!-- near-horizontal because rows are aligned.       -->
+        <!--                                                 -->
+        <!-- The only angled edge is Auth→PostgreSQL         -->
+        <!-- (Auth is row 1, PG is row 2): it exits Auth's  -->
+        <!-- right side near the bottom, drops to PG's top, -->
+        <!-- and enters PG from above in the 32px inter-row  -->
+        <!-- gap — clear of all other paths.                 -->
+        <!--                                                 -->
+        <!-- CID fans out to all three routes via the 25px   -->
+        <!-- column gap (x 385–415):                         -->
+        <!--   CID→Auth : right → up → right (gap, y↓→↑)   -->
+        <!--   CID→Jobs : straight horizontal                 -->
+        <!--   CID→Ops  : right → down → right (gap, y↓)   -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- 1. Client → Prometheus Middleware (row 1, direct horizontal) -->
+        <mxCell id="e-client-pm" value="HTTP"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#06D6A0;strokeWidth=2;
+                 fontFamily=Helvetica;fontSize=10;fontColor=#06D6A0;
+                 labelBackgroundColor=none;"
+          edge="1" source="client" target="pm" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Prometheus MW → Correlation ID MW (vertical, same column) -->
+        <mxCell id="e-pm-cid" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#E6B800;strokeWidth=1.5;"
+          edge="1" source="pm" target="cid" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. CID → Auth Service
+             CID is row 2; Auth is row 1. Exit CID right-top, go right into
+             the 30px column gap (x 380–415), turn UP to Auth's centre y,
+             then right into Auth left. -->
+        <mxCell id="e-cid-auth" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.1;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#4361EE;strokeWidth=1.5;"
+          edge="1" source="cid" target="auth" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="250" />
+              <mxPoint x="400" y="171" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. CID → Jobs Service (straight horizontal, same row) -->
+        <mxCell id="e-cid-jobs" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#7209B7;strokeWidth=1.5;"
+          edge="1" source="cid" target="jobs" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 5. CID → Ops
+             CID is row 2; Ops is row 3. Exit CID right-bottom, step into
+             the column gap, turn DOWN to Ops centre y, then right. -->
+        <mxCell id="e-cid-ops" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.9;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#06D6A0;strokeWidth=1.5;"
+          edge="1" source="cid" target="ops" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="312" />
+              <mxPoint x="400" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 6. Auth → Redis (SET/DEL JTI)
+             Auth row 1 → Redis row 1. Direct horizontal. -->
+        <mxCell id="e-auth-redis" value="SET / DEL JTI"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#EF5350;strokeWidth=2;
+                 fontFamily=Helvetica;fontSize=10;fontColor=#EF5350;
+                 labelBackgroundColor=none;"
+          edge="1" source="auth" target="redis" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 7. Auth → PostgreSQL (SELECT/INSERT users)
+             Auth is row 1 (y 132–210); PG is row 2 (y 242–342).
+             Exit Auth right-bottom → step right to x 845 → drop DOWN
+             through the 32px inter-row gap → enter PG top-centre.
+             This path is entirely in the corridor between FastAPI (right
+             edge x 810) and the data-stores group (left edge x 858),
+             so it clears Auth→Redis (y 171) above and Jobs→PG (y 281)
+             below at different x values. -->
+        <mxCell id="e-auth-pg" value="SELECT / INSERT users"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.88;exitDx=0;exitDy=0;
+                 entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#FF8C42;strokeWidth=2;
+                 fontFamily=Helvetica;fontSize=10;fontColor=#FF8C42;
+                 labelBackgroundColor=none;"
+          edge="1" source="auth" target="postgres" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="840" y="203" />
+              <mxPoint x="840" y="242" />
+              <mxPoint x="954" y="242" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8. Jobs → PostgreSQL (tenant-scoped queries)
+             Jobs row 2 → PG row 2. Direct horizontal. -->
+        <mxCell id="e-jobs-pg" value="WHERE tenant_id = $user"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#FF8C42;strokeWidth=2;
+                 fontFamily=Helvetica;fontSize=10;fontColor=#FF8C42;
+                 labelBackgroundColor=none;"
+          edge="1" source="jobs" target="postgres" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 9. Ops → Prometheus (generate_latest)
+             Ops row 3 → Prometheus row 3. Direct horizontal. -->
+        <mxCell id="e-ops-prom" value="generate_latest()"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;
+                 exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#AB47BC;strokeWidth=2;
+                 fontFamily=Helvetica;fontSize=10;fontColor=#AB47BC;
+                 labelBackgroundColor=none;"
+          edge="1" source="ops" target="prometheus" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
