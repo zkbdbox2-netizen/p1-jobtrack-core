@@ -28,29 +28,7 @@ Serves as the backend for the AI Job Tracker portfolio (P1 of 6).
 
 See architecture diagram: [draw.io source](docs/architecture.drawio) · [diagram image](docs/p1-architecture-draw-io-pic.jpg)
 
-```mermaid
-flowchart TD
-    Client(["Client\n(browser / curl)"])
-
-    subgraph FastAPI ["FastAPI (uvicorn)"]
-        direction TB
-        PM["Prometheus Middleware"]
-        CM["Correlation ID Middleware"]
-        Auth["Auth Routes\n/auth/*"]
-        Jobs["Job Routes\n/jobs/*"]
-        Ops["Ops Routes\n/health  /metrics"]
-    end
-
-    PG[("PostgreSQL 16\nusers · jobs")]
-    Redis[("Redis 7\nrefresh token JTIs")]
-    Prom(["Prometheus"])
-
-    Client -->|HTTP| PM --> CM
-    CM --> Auth & Jobs & Ops
-    Auth --> PG & Redis
-    Jobs -->|"WHERE tenant_id = $user"| PG
-    Ops --> Prom
-```
+See [draw.io source](docs/architecture.drawio) · [diagram image](docs/p1-architecture-draw-io-pic.jpg)
 
 ---
 
@@ -92,29 +70,28 @@ introduces timezone ambiguity. `DATE` stores exactly what the user means.
 
 ### Entity-relationship
 
-```mermaid
-erDiagram
-    users {
-        uuid id PK
-        varchar email UK
-        varchar hashed_password
-        uuid tenant_id UK
-        timestamp created_at
-        timestamp deleted_at
-    }
-    jobs {
-        uuid id PK
-        uuid tenant_id FK
-        varchar title
-        varchar company
-        enum stage
-        enum outcome
-        date applied_date
-        int salary_min
-        int salary_max
-        timestamp deleted_at
-    }
-    users ||--o{ jobs : "tenant_id"
+```
+users
+  id               UUID        PK
+  email            VARCHAR     UNIQUE
+  hashed_password  VARCHAR
+  tenant_id        UUID        UNIQUE
+  created_at       TIMESTAMP
+  deleted_at       TIMESTAMP   (soft delete)
+
+jobs
+  id               UUID        PK
+  tenant_id        UUID        FK → users.tenant_id
+  title            VARCHAR
+  company          VARCHAR
+  stage            ENUM        wishlist | applied | phone_screen | onsite | offer
+  outcome          ENUM        active | frozen | rejected | withdrawn | accepted
+  applied_date     DATE
+  salary_min       INT
+  salary_max       INT
+  deleted_at       TIMESTAMP   (soft delete)
+
+users ──< jobs   (one user owns many jobs, joined on tenant_id)
 ```
 
 ---

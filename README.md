@@ -11,62 +11,53 @@ Structured JSON logging · 23-test async test suite
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    Client(["Client\n(browser / curl)"])
+See [draw.io source](docs/architecture.drawio) · [diagram image](docs/p1-architecture-draw-io-pic.jpg)
 
-    subgraph FastAPI ["FastAPI (uvicorn)"]
-        direction TB
-        PM["Prometheus Middleware\nrecords latency + count"]
-        CM["Correlation ID Middleware\nattaches request ID to logs"]
-        Auth["POST /auth/register\nPOST /auth/login\nPOST /auth/refresh\nPOST /auth/logout"]
-        Jobs["GET  /jobs\nPOST /jobs\nGET  /jobs/:id\nPATCH /jobs/:id\nDELETE /jobs/:id"]
-        Ops["GET /health\nGET /metrics"]
-    end
-
-    PG[("PostgreSQL 16\nusers · jobs")]
-    Redis[("Redis 7\nrefresh token JTIs")]
-    Prom(["Prometheus scraper\n(external)"])
-
-    Client -->|"HTTP request"| PM
-    PM --> CM
-    CM --> Auth & Jobs & Ops
-    Auth -->|"SELECT / INSERT users"| PG
-    Auth -->|"SET / DEL JTI"| Redis
-    Jobs -->|"SELECT / INSERT / UPDATE jobs\nWHERE tenant_id = $user"| PG
-    Ops -->|"generate_latest()"| Prom
+```
+                 ┌──────────────────────────────────────────────────────────────┐
+                 │  FastAPI  ·  uvicorn :8000                                   │
+                 │                                                              │
+Client           │  ┌─────────────────────┐   ┌──────────────────────────────┐ │
+(browser/curl) ──►  │ Prometheus Middleware│──►│ Auth Service                 │ ├──► Redis 7
+                 │  │ latency · req count  │   │ /auth/register · /login      │ │    JTI store
+                 │  └─────────────────────┘   │ /refresh · /logout           │ │
+                 │           │                 └──────────────────────────────┘ │
+                 │           ▼                 ┌──────────────────────────────┐ │
+                 │  ┌─────────────────────┐   │ Jobs Service                 │ ├──► PostgreSQL 16
+                 │  │ Correlation ID      │──►│ GET · POST /jobs             │ │    users · jobs
+                 │  │ Middleware          │   │ GET · PATCH · DELETE /jobs/:id│ │
+                 │  └─────────────────────┘   └──────────────────────────────┘ │
+                 │                             ┌──────────────────────────────┐ │
+                 │                             │ Ops                          │ ├──► Prometheus
+                 │                             │ GET /health · GET /metrics   │ │    scraper
+                 │                             └──────────────────────────────┘ │
+                 └──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Request flow (auth example)
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as FastAPI
-    participant PG as PostgreSQL
-    participant R as Redis
+**Login:**
+```
+Client  →  POST /auth/login {email, password}
+API     →  SELECT user WHERE email = $1       →  PostgreSQL
+API        bcrypt.checkpw(password, hash)
+API        sign access_token JWT (15 min)
+API        sign refresh_token JWT (7 days)
+API     →  SET jti → user_id  TTL=7d          →  Redis
+API     →  {access_token, refresh_token}       →  Client
+```
 
-    C->>API: POST /auth/login {email, password}
-    API->>PG: SELECT user WHERE email = $1
-    PG-->>API: user row (hashed_password)
-    API->>API: bcrypt.checkpw(password, hash)
-    API->>API: sign access_token JWT (15 min)
-    API->>API: sign refresh_token JWT (7 days)
-    API->>R: SET jti → user_id (TTL 7d)
-    API-->>C: {access_token, refresh_token}
-
-    Note over C,API: Later — access token expires
-
-    C->>API: POST /auth/refresh {refresh_token}
-    API->>API: verify JWT signature + expiry
-    API->>R: GET jti (must exist)
-    R-->>API: user_id
-    API->>R: DEL old jti
-    API->>API: issue new token pair
-    API->>R: SET new jti → user_id (TTL 7d)
-    API-->>C: {access_token, refresh_token}
+**Token refresh** (after access token expires):
+```
+Client  →  POST /auth/refresh {refresh_token}
+API        verify JWT signature + expiry
+API     →  GET jti (must exist)               →  Redis
+API     →  DEL old jti                        →  Redis
+API        issue new token pair
+API     →  SET new jti → user_id  TTL=7d      →  Redis
+API     →  {access_token, refresh_token}       →  Client
 ```
 
 ---
