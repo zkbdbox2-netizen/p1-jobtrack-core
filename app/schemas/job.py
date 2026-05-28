@@ -18,6 +18,23 @@ class JobCreateRequest(BaseModel):
     applied_date: date | None = None
     notes: str | None = None
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "title": "Software Engineer",
+                "company": "Acme Corp",
+                "stage": "applied",
+                "outcome": "active",
+                "job_url": "https://acme.com/jobs/123",
+                "location": "San Francisco, CA",
+                "salary_min": 150000,
+                "salary_max": 180000,
+                "applied_date": "2026-05-27",
+                "notes": "Referred by a friend on the team.",
+            }
+        }
+    }
+
     @model_validator(mode="after")
     def salary_range_valid(self) -> "JobCreateRequest":
         """salary_max must be >= salary_min when both are provided."""
@@ -42,6 +59,16 @@ class JobUpdateRequest(BaseModel):
     salary_max: int | None = Field(None, ge=0)
     applied_date: date | None = None
     notes: str | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "stage": "phone_screen",
+                "outcome": "active",
+                "notes": "Recruiter call scheduled for next week.",
+            }
+        }
+    }
 
     @model_validator(mode="after")
     def salary_range_valid(self) -> "JobUpdateRequest":

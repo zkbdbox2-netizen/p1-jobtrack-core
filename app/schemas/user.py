@@ -11,16 +11,42 @@ class UserRegisterRequest(BaseModel):
     email: EmailStr                          # pydantic validates email format automatically
     password: str = Field(min_length=8)     # enforce minimum password length at the schema level
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "demo@example.com",
+                "password": "password123",
+            }
+        }
+    }
+
 
 class UserLoginRequest(BaseModel):
     """Body for POST /auth/login."""
     email: EmailStr
     password: str
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "demo@example.com",
+                "password": "password123",
+            }
+        }
+    }
+
 
 class RefreshRequest(BaseModel):
     """Body for POST /auth/refresh."""
     refresh_token: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "refresh_token": "<paste refresh_token from /auth/login response>",
+            }
+        }
+    }
 
 
 # ---------------------------------------------------------------------------

@@ -66,8 +66,11 @@ def create_app() -> FastAPI:
         method = request.method
         REQUESTS_INPROGRESS.labels(method=method, path=path).inc()
         start = time.perf_counter()
+        status_code = 500  # fallback if call_next raises before returning
         try:
             response: Response = await call_next(request)
+            status_code = response.status_code
+            return response
         finally:
             duration = time.perf_counter() - start
             REQUESTS_INPROGRESS.labels(method=method, path=path).dec()
@@ -75,10 +78,8 @@ def create_app() -> FastAPI:
             REQUEST_COUNT.labels(
                 method=method,
                 path=path,
-                status_code=response.status_code,
+                status_code=status_code,
             ).inc()
-
-        return response
 
     # --- Correlation ID middleware ---
     # Every HTTP request gets a unique ID (UUID). This ID is:
